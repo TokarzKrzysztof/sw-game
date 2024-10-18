@@ -1,23 +1,20 @@
-export type Score = {
-  winner: 'one' | 'two' | 'draw';
-  scores: [number, number];
-};
+import { GameResult } from '../models/game-result';
 
-export type ObjectStorageKey = {
-  'game-history': Score[];
+export type StorageKey = {
+  'game-history': GameResult[];
 };
 
 export class LocalStorage {
-  static setObjectValue<TKey extends keyof ObjectStorageKey>(
+  static setValue<TKey extends keyof StorageKey>(
     key: TKey,
-    value: ObjectStorageKey[TKey]
+    value: StorageKey[TKey]
   ) {
     window.localStorage.setItem(key, JSON.stringify(value));
   }
 
-  static getObjectValue<TKey extends keyof ObjectStorageKey>(
+  static getValue<TKey extends keyof StorageKey>(
     key: TKey
-  ): ObjectStorageKey[TKey] | null {
+  ): StorageKey[TKey] | null {
     const data = window.localStorage.getItem(key);
     if (data !== null) {
       return JSON.parse(data);
@@ -26,7 +23,7 @@ export class LocalStorage {
     }
   }
 
-  static clearValue(key: keyof ObjectStorageKey) {
+  static clearValue(key: keyof StorageKey) {
     window.localStorage.removeItem(key);
   }
 }
