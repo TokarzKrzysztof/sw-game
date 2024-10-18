@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { catchError, finalize, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable } from 'rxjs';
 import { PlayersComponent } from './components/players/players.component';
 import { GameResult } from './models/game-result';
 import { Person } from './models/person';
@@ -9,6 +9,7 @@ import { StarWarsService } from './services/star-wars.service';
 import { FileUtils } from './utils/file-utils';
 import { LocalStorage } from './utils/local-storage';
 import { NumberUtils } from './utils/number-utils';
+import { Starship } from './models/starship';
 
 const minPersonId = 1;
 const maxPersonId = 83;
@@ -27,7 +28,7 @@ export class AppComponent {
 
   inProgress = false;
   isFinished = false;
-  error: string | null = null;
+  errors: string[] = [];
   players: Players | null = null;
 
   playAgain() {
@@ -67,49 +68,51 @@ export class AppComponent {
     FileUtils.downloadTxtFile(contents, 'wyniki.txt');
   }
 
-  private makeMergedRequest<T extends Record<string, Observable<unknown>>>(
-    calls: T
-  ) {
-    this.error = null;
-    this.inProgress = true;
-
-    return forkJoin(calls).pipe(
-      finalize(() => (this.inProgress = false)),
-      catchError((err: Error) => {
-        this.error = err.message;
-        return of(undefined);
-      })
-    );
+  private getPlayerRecursive(): Observable<Person> {
+    return this.starWarsService
+      .getPerson(NumberUtils.getRandomInteger(minPersonId, maxPersonId))
+      .pipe(
+        catchError((err) => {
+          this.errors.push(err.message);
+          return this.getPlayerRecursive();
+        })
+      );
+  }
+  private getStarshipRecursive(): Observable<Starship> {
+    return this.starWarsService
+      .getStarship(NumberUtils.getRandomInteger(minStarshipId, maxStarshipId))
+      .pipe(
+        catchError((err) => {
+          this.errors.push(err.message);
+          return this.getStarshipRecursive();
+        })
+      );
   }
 
   getRandomPlayers() {
-    this.makeMergedRequest({
-      one: this.starWarsService.getPerson(
-        NumberUtils.getRandomInteger(minPersonId, maxPersonId)
-      ),
-      two: this.starWarsService.getPerson(
-        NumberUtils.getRandomInteger(minPersonId, maxPersonId)
-      ),
+    this.errors = [];
+    this.inProgress = true;
+
+    forkJoin({
+      one: this.getPlayerRecursive(),
+      two: this.getPlayerRecursive(),
     }).subscribe((obj) => {
-      if (obj) {
-        this.players = obj;
-      }
+      this.players = obj;
+      this.inProgress = false;
     });
   }
 
   getRandomStarships() {
-    this.makeMergedRequest({
-      one: this.starWarsService.getStarship(
-        NumberUtils.getRandomInteger(minStarshipId, maxStarshipId)
-      ),
-      two: this.starWarsService.getStarship(
-        NumberUtils.getRandomInteger(minStarshipId, maxStarshipId)
-      ),
+    this.errors = [];
+    this.inProgress = true;
+
+    forkJoin({
+      one: this.getStarshipRecursive(),
+      two: this.getStarshipRecursive(),
     }).subscribe((obj) => {
-      if (obj) {
-        this.players!.one.starship = obj.one;
-        this.players!.two.starship = obj.two;
-      }
+      this.players!.one.starship = obj.one;
+      this.players!.two.starship = obj.two;
+      this.inProgress = false;
     });
   }
 

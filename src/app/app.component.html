@@ -1,11 +1,17 @@
 @if (players) {
-  <app-players [players]="players"></app-players>
+<app-players [players]="players"></app-players>
 }
 
-@if (error) {
-<p>{{ error }}</p>
-} @if (inProgress) {
+@if (inProgress) {
 <p>trwa pobieranie...</p>
+@if (errors.length) {
+<div class="errors">
+  <p>Liczba błędów: {{errors.length}}</p>
+  @for (error of errors; track $index) {
+  <p>{{error}}</p>
+  }
+</div>
+}
 }
 
 @if (!players) {
