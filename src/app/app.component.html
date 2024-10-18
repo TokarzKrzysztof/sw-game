@@ -2,26 +2,20 @@
 <app-players [players]="players"></app-players>
 }
 
-@if (inProgress) {
-<p>trwa pobieranie...</p>
-@if (errors.length) {
-<div class="errors">
-  <p>Liczba błędów: {{errors.length}}</p>
-  @for (error of errors; track $index) {
-  <p>{{error}}</p>
-  }
-</div>
-}
-}
-
 @if (!players) {
 <button [disabled]="inProgress" (click)="getRandomPlayers()">
   Wyznacz atrybuty graczy
 </button>
+@if (inProgress) {
+ <button (click)="cancelLoading()">Anuluj</button>
+}
 } @else if(!players.two.starship) {
 <button [disabled]="inProgress" (click)="getRandomStarships()">
   Wyznacz atrybuty statków
 </button>
+@if (inProgress) {
+ <button (click)="cancelLoading()">Anuluj</button>
+}
 } @else if(!isFinished) {
 <button [disabled]="inProgress" (click)="getWinner()">Wyznacz zwycięzcę</button>
 } @else {
@@ -29,3 +23,15 @@
 <button (click)="downloadScores()">Pobierz wyniki</button>
 <button (click)="clearScores()">Wyczyść wyniki</button>
 }
+
+@if (inProgress) {
+  <p>trwa pobieranie...</p>
+  @if (errors.length) {
+  <div class="errors">
+    <p>Liczba błędów: {{errors.length}}</p>
+    @for (error of errors; track $index) {
+    <p>{{error}}</p>
+    }
+  </div>
+  }
+  }

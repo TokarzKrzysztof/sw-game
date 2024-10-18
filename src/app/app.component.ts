@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { catchError, forkJoin, Observable } from 'rxjs';
+import { catchError, forkJoin, Observable, Subject, takeUntil } from 'rxjs';
 import { PlayersComponent } from './components/players/players.component';
 import { GameResult } from './models/game-result';
 import { Person } from './models/person';
@@ -26,10 +26,16 @@ const maxStarshipId = 75;
 export class AppComponent {
   private starWarsService = inject(StarWarsService);
 
+  isLoadingCanceled$ = new Subject<void>();
   inProgress = false;
   isFinished = false;
   errors: string[] = [];
   players: Players | null = null;
+
+  cancelLoading() {
+    this.isLoadingCanceled$.next();
+    this.inProgress = false
+  }
 
   playAgain() {
     this.isFinished = false;
@@ -72,6 +78,7 @@ export class AppComponent {
     return this.starWarsService
       .getPerson(NumberUtils.getRandomInteger(minPersonId, maxPersonId))
       .pipe(
+        takeUntil(this.isLoadingCanceled$),
         catchError((err) => {
           this.errors.push(err.message);
           return this.getPlayerRecursive();
@@ -82,6 +89,7 @@ export class AppComponent {
     return this.starWarsService
       .getStarship(NumberUtils.getRandomInteger(minStarshipId, maxStarshipId))
       .pipe(
+        takeUntil(this.isLoadingCanceled$),
         catchError((err) => {
           this.errors.push(err.message);
           return this.getStarshipRecursive();
