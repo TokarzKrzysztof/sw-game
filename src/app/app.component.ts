@@ -1,15 +1,24 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { catchError, finalize, forkJoin, Observable } from 'rxjs';
+import { catchError, finalize, forkJoin, Observable, of } from 'rxjs';
+import { PlayersComponent } from './components/players/players.component';
+import { GameResult } from './models/game-result';
 import { Person } from './models/person';
+import { Players } from './models/players';
 import { StarWarsService } from './services/star-wars.service';
 import { FileUtils } from './utils/file-utils';
-import { LocalStorage, Score } from './utils/local-storage';
+import { LocalStorage } from './utils/local-storage';
+import { NumberUtils } from './utils/number-utils';
+
+const minPersonId = 1;
+const maxPersonId = 83;
+const minStarshipId = 2;
+const maxStarshipId = 75;
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, PlayersComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -19,7 +28,7 @@ export class AppComponent {
   inProgress = false;
   isFinished = false;
   error: string | null = null;
-  players: { one: Person; two: Person } | null = null;
+  players: Players | null = null;
 
   playAgain() {
     this.isFinished = false;
@@ -32,7 +41,12 @@ export class AppComponent {
   }
 
   downloadScores() {
-    const history = LocalStorage.getObjectValue('game-history');
+    const history = LocalStorage.getValue('game-history');
+    if (!history?.length) {
+      window.alert('Brak historii gier do pobrania');
+      return;
+    }
+
     const contents = history!
       .map((x, i) => {
         let text = `Gra numer ${i + 1}`;
@@ -63,27 +77,39 @@ export class AppComponent {
       finalize(() => (this.inProgress = false)),
       catchError((err: Error) => {
         this.error = err.message;
-        throw new Error(err.message);
+        return of(undefined);
       })
     );
   }
 
   getRandomPlayers() {
     this.makeMergedRequest({
-      one: this.starWarsService.getPerson(Math.floor(Math.random() * 82)),
-      two: this.starWarsService.getPerson(Math.floor(Math.random() * 82)),
+      one: this.starWarsService.getPerson(
+        NumberUtils.getRandomInteger(minPersonId, maxPersonId)
+      ),
+      two: this.starWarsService.getPerson(
+        NumberUtils.getRandomInteger(minPersonId, maxPersonId)
+      ),
     }).subscribe((obj) => {
-      this.players = obj;
+      if (obj) {
+        this.players = obj;
+      }
     });
   }
 
   getRandomStarships() {
     this.makeMergedRequest({
-      one: this.starWarsService.getStarship(Math.floor(Math.random() * 36)),
-      two: this.starWarsService.getStarship(Math.floor(Math.random() * 36)),
+      one: this.starWarsService.getStarship(
+        NumberUtils.getRandomInteger(minStarshipId, maxStarshipId)
+      ),
+      two: this.starWarsService.getStarship(
+        NumberUtils.getRandomInteger(minStarshipId, maxStarshipId)
+      ),
     }).subscribe((obj) => {
-      this.players!.one.starship = obj.one;
-      this.players!.two.starship = obj.two;
+      if (obj) {
+        this.players!.one.starship = obj.one;
+        this.players!.two.starship = obj.two;
+      }
     });
   }
 
@@ -97,7 +123,7 @@ export class AppComponent {
       this.getScore(this.players!.two),
     ];
 
-    let winner: Score['winner'];
+    let winner: GameResult['winner'];
     if (score1 > score2) {
       window.alert('Gracz 1 wygrywa!');
       winner = 'one';
@@ -109,8 +135,8 @@ export class AppComponent {
       winner = 'two';
     }
 
-    LocalStorage.setObjectValue('game-history', [
-      ...(LocalStorage.getObjectValue('game-history') ?? []),
+    LocalStorage.setValue('game-history', [
+      ...(LocalStorage.getValue('game-history') ?? []),
       { winner, scores: [score1, score2] },
     ]);
 
