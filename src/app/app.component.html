@@ -1,37 +1,37 @@
-@if (players) {
-  <app-players [players]="players"></app-players>
+@if (state.players()) {
+  <app-players [players]="state.players()!"></app-players>
 }
 
-@if (!players) {
-  <button [disabled]="inProgress" (click)="getRandomPlayers()">
+@if (!state.players()) {
+  <button [disabled]="state.inProgress()" (click)="recursiveLoaderService.getRandomPlayers()">
     Wyznacz atrybuty graczy
   </button>
-  @if (inProgress) {
-    <button (click)="cancelLoading()">Anuluj</button>
+  @if (state.inProgress()) {
+    <button (click)="recursiveLoaderService.cancelLoading()">Anuluj</button>
   }
-} @else if (!players.two.starship) {
-  <button [disabled]="inProgress" (click)="getRandomStarships()">
+} @else if (!state.players()!.two.starship) {
+  <button [disabled]="state.inProgress()" (click)="recursiveLoaderService.getRandomStarships()">
     Wyznacz atrybuty statków
   </button>
-  @if (inProgress) {
-    <button (click)="cancelLoading()">Anuluj</button>
+  @if (state.inProgress()) {
+    <button (click)="recursiveLoaderService.cancelLoading()">Anuluj</button>
   }
-} @else if (!isFinished) {
-  <button [disabled]="inProgress" (click)="getWinner()">
+} @else if (!state.isFinished()) {
+  <button [disabled]="state.inProgress()" (click)="gameService.getWinner()">
     Wyznacz zwycięzcę
   </button>
 } @else {
-  <button (click)="playAgain()">Zagraj ponownie</button>
-  <button (click)="downloadScores()">Pobierz wyniki</button>
-  <button (click)="clearScores()">Wyczyść wyniki</button>
+  <button (click)="gameService.playAgain()">Zagraj ponownie</button>
+  <button (click)="gameService.downloadScores()">Pobierz wyniki</button>
+  <button (click)="gameService.clearScores()">Wyczyść wyniki</button>
 }
 
-@if (inProgress) {
+@if (state.inProgress()) {
   <p>trwa pobieranie...</p>
-  @if (errors.length) {
+  @if (state.errors().length) {
     <div class="errors">
-      <p>Liczba błędów: {{ errors.length }}</p>
-      @for (error of errors; track $index) {
+      <p>Liczba błędów: {{ state.errors().length }}</p>
+      @for (error of state.errors(); track $index) {
         <p>{{ error }}</p>
       }
     </div>

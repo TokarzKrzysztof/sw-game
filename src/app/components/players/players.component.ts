@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { Players } from '../../models/players';
 
 @Component({
@@ -9,5 +9,5 @@ import { Players } from '../../models/players';
   styleUrl: './players.component.scss',
 })
 export class PlayersComponent {
-  @Input({ required: true }) players!: Players;
+  players = input.required<Players>()
 }

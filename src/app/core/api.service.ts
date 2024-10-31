@@ -11,7 +11,9 @@ import { Starship } from '../models/starship';
 const catchApiError = <T>(id: number) => {
   return catchError<T, never>((error: HttpErrorResponse) => {
     if (error.status === HttpStatusCode.NotFound) {
-      throw new Error(`Nie znaleziono elementu o identyfikatorze: ${id}, pobieram dalej...`);
+      throw new Error(
+        `Nie znaleziono elementu o identyfikatorze: ${id}, pobieram dalej...`,
+      );
     } else {
       throw new Error('Coś poszło nie tak');
     }
@@ -27,7 +29,7 @@ export type SwResponse<T extends Record<string, unknown>> = {
 @Injectable({
   providedIn: 'root',
 })
-export class StarWarsService {
+export class ApiService {
   private httpClient = inject(HttpClient);
 
   getPerson(id: number): Observable<Person> {
@@ -39,20 +41,16 @@ export class StarWarsService {
           const item = x.result.properties;
 
           if (isNaN(+item.height)) {
-            throw new Error(
-              'Wysokość jest niepoprawna, pobieram dalej...'
-            );
+            throw new Error('Wysokość jest niepoprawna, pobieram dalej...');
           }
           if (isNaN(+item.mass)) {
-            throw new Error(
-              'Masa jest niepoprawna, pobieram dalej...'
-            );
+            throw new Error('Masa jest niepoprawna, pobieram dalej...');
           }
           return {
             height: +item.height,
             mass: +item.mass,
           };
-        })
+        }),
       );
   }
 
@@ -67,13 +65,13 @@ export class StarWarsService {
 
           if (isNaN(crewAmount)) {
             throw new Error(
-              'Dane dotyczące załogi są niepoprawne, pobieram dalej...'
+              'Dane dotyczące załogi są niepoprawne, pobieram dalej...',
             );
           }
           return {
             crew: crewAmount,
           };
-        })
+        }),
       );
   }
 }

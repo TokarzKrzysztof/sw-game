@@ -1,14 +1,14 @@
 <div>
-    <p>Gracz 1</p>
-    <p>masa: {{ players.one.mass }}, wysokość: {{ players.one.height }}</p>
-    @if (players.one.starship) {
-    <p>załoga statku: {{ players.one.starship.crew }}</p>
-    }
+  <p>Gracz 1</p>
+  <p>masa: {{ players().one.mass }}, wysokość: {{ players().one.height }}</p>
+  @if (players().one.starship; as starship) {
+    <p>załoga statku: {{ starship.crew }}</p>
+  }
 </div>
 <div>
-    <p>Gracz 2</p>
-    <p>masa: {{ players.two.mass }}, wysokość: {{ players.two.height }}</p>
-    @if (players.two.starship) {
-    <p>załoga statku: {{ players.two.starship.crew }}</p>
-    }
+  <p>Gracz 2</p>
+  <p>masa: {{ players().two.mass }}, wysokość: {{ players().two.height }}</p>
+  @if (players().two.starship; as starship) {
+    <p>załoga statku: {{ starship.crew }}</p>
+  }
 </div>
